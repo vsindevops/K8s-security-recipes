@@ -95,10 +95,10 @@ gcloud compute networks subnets create k8s-subnet \
   --range=10.10.0.0/24
 ```
 
-	•	VPC: k8s-secure-vpc
-	•	Subnet: k8s-subnet
-	•	Region: asia-south1
-	•	CIDR block: 10.10.0.0/24
+	-	VPC: k8s-secure-vpc
+	-	Subnet: k8s-subnet
+	-	Region: asia-south1
+	-	CIDR block: 10.10.0.0/24
 
 You can change region and CIDR to your preference, but then stay consistent later.
 
@@ -117,6 +117,7 @@ PROJECT_ID=<YOUR_PROJECT_ID>
 
 ### 5.2. Create the Cluster (Standard, 2 Nodes, Small Instances)
 
+```bash
 gcloud container clusters create $CLUSTER_NAME \
   --zone $ZONE \
   --cluster-version latest \
@@ -126,6 +127,7 @@ gcloud container clusters create $CLUSTER_NAME \
   --subnetwork k8s-subnet \
   --enable-shielded-nodes \
   --workload-pool="$PROJECT_ID.svc.id.goog"
+```
 
 This gives you: 1 control plane (managed by GKE) + 2 worker nodes (e2-micro VMs).
 
@@ -165,6 +167,7 @@ Before configuring PSA, it’s crucial to understand where different security me
 These control what a pod is allowed to request or do.
 
 Examples:
+```text
 	•	Pod Security Admission (PSA)
 	•	Pod securityContext fields:
 		-  runAsUser, runAsNonRoot
@@ -174,6 +177,7 @@ Examples:
 		-  Linux capabilities (capAdd, capDrop)
 	•   Seccomp profiles
 	•	AppArmor profiles
+```
 
 Think of pod-level controls as:
 

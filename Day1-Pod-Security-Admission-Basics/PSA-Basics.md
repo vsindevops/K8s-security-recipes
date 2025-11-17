@@ -359,7 +359,8 @@ gcloud compute networks delete k8s-secure-vpc --quiet
 ---
 
 Congratulations, Today you have learned below topics:
-	* ✅ Created a GKE cluster on GCP with:
+```text
+    * ✅ Created a GKE cluster on GCP with:
 	* Custom VPC & subnet
 	* Shielded nodes
 	* 2 worker nodes (e2-micro)
@@ -368,3 +369,4 @@ Congratulations, Today you have learned below topics:
 	* ✅ Configured a namespace with PSA restricted enforcement
 	* ✅ Confirmed that a privileged pod is rejected by PSA
 	* ✅ Learned where Seccomp, AppArmor, and PSP fit conceptually
+```

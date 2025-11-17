@@ -61,8 +61,8 @@ gcloud config get-value project
 ## 3. Enable Required APIs
 
 GKE runs on top of several GCP services. At minimum, we must enable:
-	•	GKE API → container.googleapis.com
-	•	Compute Engine API → compute.googleapis.com
+	-	GKE API → container.googleapis.com
+	-	Compute Engine API → compute.googleapis.com
 
 Run:
 ```bash
@@ -71,8 +71,8 @@ gcloud services enable compute.googleapis.com
 ```
 
 Why?
-	•	container.googleapis.com allows you to create and manage Kubernetes clusters.
-	•	compute.googleapis.com is needed because GKE worker nodes are actually Compute Engine VMs.
+	-	container.googleapis.com allows you to create and manage Kubernetes clusters.
+	-	compute.googleapis.com is needed because GKE worker nodes are actually Compute Engine VMs.
 
 ## 4. (Recommended) Create a Dedicated VPC & Subnet
 
@@ -84,7 +84,7 @@ You could use the default VPC, but security best practice is to create a separat
 gcloud compute networks create k8s-secure-vpc --subnet-mode=custom
 ```
 
-	•	--subnet-mode=custom means you will explicitly create subnets (no automatic ones).
+	-	--subnet-mode=custom means you will explicitly create subnets (no automatic ones).
 
 ### 4.2. Create a Subnet for the Cluster
 
@@ -168,15 +168,15 @@ These control what a pod is allowed to request or do.
 
 Examples:
 ```text
-	•	Pod Security Admission (PSA)
-	•	Pod securityContext fields:
+	-	Pod Security Admission (PSA)
+	-	Pod securityContext fields:
 		-  runAsUser, runAsNonRoot
 		-  privileged
 		-  allowPrivilegeEscalation
 		-  readOnlyRootFilesystem
 		-  Linux capabilities (capAdd, capDrop)
-	•   Seccomp profiles
-	•	AppArmor profiles
+	-   Seccomp profiles
+	-	AppArmor profiles
 ```
 
 Think of pod-level controls as:
@@ -191,13 +191,13 @@ They are enforced inside the Kubernetes API during admission.
 These protect the node (VM) itself and the broader infrastructure.
 
 Examples:
-	•	Shielded nodes (OS/boot attestation)
-	•	Kubelet authentication & authorization
-	•	OS patching & hardening
-	•	File system lockdowns
-	•	Container runtime configuration (containerd, CRI-O)
-	•	IAM roles attached to the node
-	•	VPC firewall rules, network policies, etc.
+	-	Shielded nodes (OS/boot attestation)
+	-	Kubelet authentication & authorization
+	-	OS patching & hardening
+	-	File system lockdowns
+	-	Container runtime configuration (containerd, CRI-O)
+	-	IAM roles attached to the node
+	-	VPC firewall rules, network policies, etc.
 
 Think of node-level controls as:
 
@@ -215,13 +215,13 @@ Kubernetes defines three standard policy levels:
 	3.	restricted  ← Most secure and our focus today
 
 You enable PSA by adding labels to a namespace. When a Pod is created in that namespace:
-	•	PSA evaluates the Pod spec against the configured policy (baseline or restricted).
-	•	If the spec violates the policy in enforce mode → the Pod is rejected.
+	-	PSA evaluates the Pod spec against the configured policy (baseline or restricted).
+	-	If the spec violates the policy in enforce mode → the Pod is rejected.
 
 Why PSA instead of PSP?
-	•	PSA is simpler to understand and use.
-	•	PSP (PodSecurityPolicy) was confusing and is deprecated & removed in Kubernetes v1.25.
-	•	PSA + tools like Gatekeeper/Kyverno are the modern replacement.
+	-	PSA is simpler to understand and use.
+	-	PSP (PodSecurityPolicy) was confusing and is deprecated & removed in Kubernetes v1.25.
+	-	PSA + tools like Gatekeeper/Kyverno are the modern replacement.
 
 ---
 
@@ -245,8 +245,8 @@ kubectl label namespace psa-restricted-demo \
   pod-security.kubernetes.io/enforce-version=latest
 ```
 
-	•	pod-security.kubernetes.io/enforce → selects the policy level (privileged, baseline, or restricted).
-	•	pod-security.kubernetes.io/enforce-version → which version of the Pod Security Standard to use (latest is fine for labs).
+	-	pod-security.kubernetes.io/enforce → selects the policy level (privileged, baseline, or restricted).
+	-	pod-security.kubernetes.io/enforce-version → which version of the Pod Security Standard to use (latest is fine for labs).
 
 ### 9.3. Verify Namespace Labels
 
@@ -285,7 +285,7 @@ spec:
 ```
 
 Key piece:
-	•	securityContext.privileged: true
+	-	securityContext.privileged: true
 → This asks Kubernetes to run the container with full privileges, similar to root on the host. This is extremely powerful and generally unsafe in shared environments.
 
 Under the restricted PSA profile, this is not allowed.
@@ -312,10 +312,10 @@ violates PodSecurity "restricted:latest": privileged containers are not allowed
 ```
 
 This means:
-	•	The Pod never got created.
-	•	The API server rejected the request.
-	•	The node never started this container.
-	•	PSA is working as intended and enforcing restricted rules.
+	-	The Pod never got created.
+	-	The API server rejected the request.
+	-	The node never started this container.
+	-	PSA is working as intended and enforcing restricted rules.
 
 This is the core of today’s lesson:
 
@@ -332,16 +332,16 @@ kubectl apply -f privileged-pod.yaml -n default
 ```
 
 Depending on how your cluster is configured, this may:
-	•	Be allowed, or
-	•	Be subject to a different PSA policy, or
-	•	Still be blocked if GKE set defaults.
+	-	Be allowed, or
+	-	Be subject to a different PSA policy, or
+	-	Still be blocked if GKE set defaults.
 
 Key takeaway:
-	•	PSA is namespace-scoped.
-	•	The platform team can enforce different policies per namespace:
-	•	dev, staging, prod
-	•	different teams or squads
-	•	For maximum safety, sensitive namespaces (e.g., prod) should almost always be restricted.
+	-	PSA is namespace-scoped.
+	-	The platform team can enforce different policies per namespace:
+	-	dev, staging, prod
+	-	different teams or squads
+	-	For maximum safety, sensitive namespaces (e.g., prod) should almost always be restricted.
 
 ## 13. Cleanup
 
@@ -359,12 +359,12 @@ gcloud compute networks delete k8s-secure-vpc --quiet
 ---
 
 Congratulations, Today you have learned below topics:
-	•	✅ Created a GKE cluster on GCP with:
-	•	Custom VPC & subnet
-	•	Shielded nodes
-	•	2 worker nodes (e2-micro)
-	•	Workload Identity enabled
-	•	✅ Understood pod-level vs node-level security
-	•	✅ Configured a namespace with PSA restricted enforcement
-	•	✅ Confirmed that a privileged pod is rejected by PSA
-	•	✅ Learned where Seccomp, AppArmor, and PSP fit conceptually
+	-	✅ Created a GKE cluster on GCP with:
+	-	Custom VPC & subnet
+	-	Shielded nodes
+	-	2 worker nodes (e2-micro)
+	-	Workload Identity enabled
+	-	✅ Understood pod-level vs node-level security
+	-	✅ Configured a namespace with PSA restricted enforcement
+	-	✅ Confirmed that a privileged pod is rejected by PSA
+	-	✅ Learned where Seccomp, AppArmor, and PSP fit conceptually

@@ -53,7 +53,6 @@ gcloud config set project <PROJECT_ID>
 Replace <PROJECT_ID> with your actual GCP project ID.
 
 You can verify:
-
 ```bash
 gcloud config get-value project
 ```
@@ -61,8 +60,10 @@ gcloud config get-value project
 ## 3. Enable Required APIs
 
 GKE runs on top of several GCP services. At minimum, we must enable:
+```text
 	-	GKE API → container.googleapis.com
 	-	Compute Engine API → compute.googleapis.com
+```
 
 Run:
 ```bash
@@ -71,8 +72,10 @@ gcloud services enable compute.googleapis.com
 ```
 
 Why?
+```text
 	-	container.googleapis.com allows you to create and manage Kubernetes clusters.
 	-	compute.googleapis.com is needed because GKE worker nodes are actually Compute Engine VMs.
+```
 
 ## 4. (Recommended) Create a Dedicated VPC & Subnet
 
@@ -84,7 +87,7 @@ You could use the default VPC, but security best practice is to create a separat
 gcloud compute networks create k8s-secure-vpc --subnet-mode=custom
 ```
 
-	-	--subnet-mode=custom means you will explicitly create subnets (no automatic ones).
+	--subnet-mode=custom means you will explicitly create subnets (no automatic ones).
 
 ### 4.2. Create a Subnet for the Cluster
 
@@ -94,11 +97,6 @@ gcloud compute networks subnets create k8s-subnet \
   --region=us-central1 \
   --range=10.10.0.0/24
 ```
-
-	-	VPC: k8s-secure-vpc
-	-	Subnet: k8s-subnet
-	-	Region: asia-south1
-	-	CIDR block: 10.10.0.0/24
 
 You can change region and CIDR to your preference, but then stay consistent later.
 
@@ -191,6 +189,7 @@ They are enforced inside the Kubernetes API during admission.
 These protect the node (VM) itself and the broader infrastructure.
 
 Examples:
+```text
 	-	Shielded nodes (OS/boot attestation)
 	-	Kubelet authentication & authorization
 	-	OS patching & hardening
@@ -198,6 +197,7 @@ Examples:
 	-	Container runtime configuration (containerd, CRI-O)
 	-	IAM roles attached to the node
 	-	VPC firewall rules, network policies, etc.
+```
 
 Think of node-level controls as:
 
@@ -215,13 +215,17 @@ Kubernetes defines three standard policy levels:
 	3.	restricted  ← Most secure and our focus today
 
 You enable PSA by adding labels to a namespace. When a Pod is created in that namespace:
+```text
 	-	PSA evaluates the Pod spec against the configured policy (baseline or restricted).
 	-	If the spec violates the policy in enforce mode → the Pod is rejected.
+```
 
 Why PSA instead of PSP?
+```text
 	-	PSA is simpler to understand and use.
 	-	PSP (PodSecurityPolicy) was confusing and is deprecated & removed in Kubernetes v1.25.
 	-	PSA + tools like Gatekeeper/Kyverno are the modern replacement.
+```
 
 ---
 
@@ -245,8 +249,10 @@ kubectl label namespace psa-restricted-demo \
   pod-security.kubernetes.io/enforce-version=latest
 ```
 
+```text
 	-	pod-security.kubernetes.io/enforce → selects the policy level (privileged, baseline, or restricted).
 	-	pod-security.kubernetes.io/enforce-version → which version of the Pod Security Standard to use (latest is fine for labs).
+```
 
 ### 9.3. Verify Namespace Labels
 
@@ -255,7 +261,6 @@ kubectl get namespace psa-restricted-demo --show-labels
 ```
 
 You should see output similar to:
-
 ```bash
 NAME                  STATUS   AGE   LABELS
 psa-restricted-demo   Active   ...   pod-security.kubernetes.io/enforce=restricted,...,pod-security.kubernetes.io/enforce-version=latest
@@ -285,8 +290,10 @@ spec:
 ```
 
 Key piece:
+```text
 	-	securityContext.privileged: true
 → This asks Kubernetes to run the container with full privileges, similar to root on the host. This is extremely powerful and generally unsafe in shared environments.
+```
 
 Under the restricted PSA profile, this is not allowed.
 
@@ -305,17 +312,18 @@ kubectl apply -f privileged-pod.yaml -n psa-restricted-demo
 ### 11.2. Expected Output
 
 You should see an error similar to:
-
 ```text
 Error from server (Forbidden): pods "privileged-test" is forbidden:
 violates PodSecurity "restricted:latest": privileged containers are not allowed
 ```
 
 This means:
+```text
 	-	The Pod never got created.
 	-	The API server rejected the request.
 	-	The node never started this container.
 	-	PSA is working as intended and enforcing restricted rules.
+```
 
 This is the core of today’s lesson:
 
@@ -326,22 +334,25 @@ Even in a small lab cluster, you can make the platform enforce strong security a
 ## 12. Now let's try the Same Pod in a Non-Restricted Namespace
 
 To understand scope, try this in the default namespace:
-
 ```bash
 kubectl apply -f privileged-pod.yaml -n default
 ```
 
 Depending on how your cluster is configured, this may:
+```text
 	-	Be allowed, or
 	-	Be subject to a different PSA policy, or
 	-	Still be blocked if GKE set defaults.
+```
 
 Key takeaway:
+```text
 	-	PSA is namespace-scoped.
 	-	The platform team can enforce different policies per namespace:
 	-	dev, staging, prod
 	-	different teams or squads
 	-	For maximum safety, sensitive namespaces (e.g., prod) should almost always be restricted.
+```
 
 ## 13. Cleanup
 

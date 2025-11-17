@@ -339,6 +339,19 @@ Key takeaway:
 	•	different teams or squads
 	•	For maximum safety, sensitive namespaces (e.g., prod) should almost always be restricted.
 
+## 13. Cleanup
+
+After completing the lab, feel free to use below commands to cleanup all created resources:
+
+```bash
+gcloud container clusters delete $CLUSTER_NAME --zone $ZONE --quiet
+
+gcloud compute networks subnets delete k8s-subnet \
+  --region=$REGION --quiet
+
+gcloud compute networks delete k8s-secure-vpc --quiet
+```
+
 ---
 
 Congratulations, Today you have learned below topics:
